@@ -1,5 +1,7 @@
 import tkinter as tk
+from tkinter import ttk
 from ui.panels.panel_main import MainPanel
+from ui.panels.panel_settings import SettingsPanel
 from core.utils import bootcheck
 
 class TickerApp:
@@ -11,11 +13,15 @@ class TickerApp:
         self.root.configure(bg="white")
 
         bootcheck()
-        self._load_main_panel()
+        self._create_notebook()
 
-    def _load_main_panel(self):
-        self.panel = MainPanel(self.root)
-        self.panel.pack(fill="both", expand=True)
+    def _create_notebook(self):
+        self.notebook = ttk.Notebook(self.root)
+        self.main_panel = MainPanel(self.notebook)
+        self.settings_panel = SettingsPanel(self.notebook)
+        self.notebook.add(self.main_panel, text="Main")
+        self.notebook.add(self.settings_panel, text="Settings")
+        self.notebook.pack(fill="both", expand=True)
 
 def launch_gui():
     root = tk.Tk()
