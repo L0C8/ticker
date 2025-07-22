@@ -1,5 +1,6 @@
 import yfinance as yf
 import requests
+from core.calc import calculate_rsi, calculate_ma, calculate_macd
 
 def get_ticker_data(ticker_symbol: str, api_key: str | None = None) -> dict:
     ticker_symbol = ticker_symbol.upper()
@@ -62,31 +63,6 @@ def get_ticker_data(ticker_symbol: str, api_key: str | None = None) -> dict:
     except Exception as e:
         return {"error": f"Failed to fetch data for {ticker_symbol}: {str(e)}"}
 
-
-def calculate_rsi(series, period: int = 14):
-    """Simple RSI calculation from close prices."""
-    delta = series.diff().dropna()
-    gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
-
-    rs = gain / loss
-    rsi = 100 - (100 / (1 + rs))
-    return round(rsi.iloc[-1], 2) if not rsi.empty else None
-
-
-def calculate_ma(series, window: int):
-    ma = series.rolling(window=window).mean()
-    return round(ma.iloc[-1], 2) if not ma.empty else None
-
-
-def calculate_macd(series, short_window: int = 12, long_window: int = 26, signal_window: int = 9):
-    exp1 = series.ewm(span=short_window, adjust=False).mean()
-    exp2 = series.ewm(span=long_window, adjust=False).mean()
-    macd = exp1 - exp2
-    signal = macd.ewm(span=signal_window, adjust=False).mean()
-    if macd.empty or signal.empty:
-        return None, None
-    return round(macd.iloc[-1], 2), round(signal.iloc[-1], 2)
 
 
 def fetch_finnhub_quote(symbol: str, api_key: str) -> dict | None:
