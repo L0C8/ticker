@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
-import configparser
+import json
+
+from core.cipher import AESCipherPass, hash_text
 
 
 class CreatePanel(tk.Frame):
@@ -50,9 +52,10 @@ class CreatePanel(tk.Frame):
                 return
 
         enc_user = AESCipherPass.encrypt(username, "default")
-        hashed_pw = hash_text(pw1)
+        ciphered_pw = AESCipherPass.encrypt(pw1, "default")
+        hashed_pw = hash_text(ciphered_pw)
         enc_pw = AESCipherPass.encrypt(hashed_pw, pw1)
-        users[enc_user] = {"password": enc_pw}
+        users[enc_user] = {"password": enc_pw, "finnhub": ""}
         data["users"] = users
 
         with open(self.app.accounts_file, "w", encoding="utf-8") as f:
