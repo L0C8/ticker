@@ -10,9 +10,11 @@ The application relies on the following Python libraries:
 - numpy
 - yfinance
 - cryptography
+- scikit-learn
+- xgboost
 
 You can install them with:
 
 ```bash
-pip install pandas numpy yfinance cryptography
+pip install pandas numpy yfinance cryptography scikit-learn xgboost
 ```

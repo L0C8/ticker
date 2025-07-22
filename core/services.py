@@ -4,6 +4,8 @@ from core.calc import (
     calculate_ma,
     calculate_macd,
     summarize_option_chain,
+    random_forest_prediction,
+    xgboost_prediction,
 )
 
 def get_ticker_data(ticker_symbol: str) -> dict:
@@ -32,6 +34,9 @@ def get_ticker_data(ticker_symbol: str) -> dict:
         ma200 = calculate_ma(close, 200)
         macd_val, macd_signal = calculate_macd(close)
 
+        rf_pred = random_forest_prediction(close)
+        xgb_pred = xgboost_prediction(close)
+
         options_summary = summarize_option_chain(ticker_symbol)
 
         data = {
@@ -48,6 +53,8 @@ def get_ticker_data(ticker_symbol: str) -> dict:
             "MA200": ma200,
             "MACD": macd_val,
             "MACD Signal": macd_signal,
+            "Random Forest Prediction": rf_pred,
+            "XGBoost Prediction": xgb_pred,
             "Options": options_summary,
         }
 
