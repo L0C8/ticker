@@ -1,6 +1,5 @@
 
 from pathlib import Path
-import configparser
 import json
 from core.cipher import AESCipherPass, hash_text
 
@@ -15,9 +14,10 @@ def bootcheck():
         default_user = "admin"
         default_pass = "admin"
         enc_user = AESCipherPass.encrypt(default_user, "default")
-        hashed = hash_text(default_pass)
+        ciphered_pw = AESCipherPass.encrypt(default_pass, "default")
+        hashed = hash_text(ciphered_pw)
         enc_pass_hash = AESCipherPass.encrypt(hashed, default_pass)
-        data = {"users": {enc_user: {"password": enc_pass_hash}}}
+        data = {"users": {enc_user: {"password": enc_pass_hash, "finnhub": ""}}}
         with accounts_file.open("w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
 

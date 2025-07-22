@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import messagebox
-import configparser
 import json
 from pathlib import Path
 from core.cipher import AESCipherPass, hash_text
@@ -36,7 +35,8 @@ class LoginPanel(tk.Frame):
             data = {}
 
         users = data.get("users", {})
-        hashed_input = hash_text(password)
+        ciphered_input = AESCipherPass.encrypt(password, "default")
+        hashed_input = hash_text(ciphered_input)
 
         for enc_user, info in users.items():
             try:
@@ -50,6 +50,9 @@ class LoginPanel(tk.Frame):
                 except Exception:
                     break
                 if stored_hash == hashed_input:
+                    self.app.current_password = password
+                    self.app.current_user_enc = enc_user
+                    self.app.current_username = username
                     self.app.show_main()
                     return
                 break

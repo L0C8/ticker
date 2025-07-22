@@ -22,6 +22,9 @@ class TickerApp:
         bootcheck()
         self.base_dir = Path(__file__).resolve().parent.parent
         self.accounts_file = self.base_dir / "data" / "accounts.json"
+        self.current_password = None
+        self.current_user_enc = None
+        self.current_username = None
 
         self.container = tk.Frame(self.root, bg="white")
         self.container.pack(fill="both", expand=True)
@@ -46,7 +49,7 @@ class TickerApp:
         self.clear_container()
         notebook = ttk.Notebook(self.container)
         main_panel = MainPanel(notebook)
-        settings_panel = SettingsPanel(notebook)
+        settings_panel = SettingsPanel(notebook, self)
         notebook.add(main_panel, text="Main")
         notebook.add(settings_panel, text="Settings")
         notebook.pack(fill="both", expand=True)
