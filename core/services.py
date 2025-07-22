@@ -1,4 +1,5 @@
 import yfinance as yf
+from core.calc import calculate_rsi, calculate_ma, calculate_macd
 
 def get_ticker_data(ticker_symbol: str) -> dict:
     ticker_symbol = ticker_symbol.upper()
@@ -16,12 +17,17 @@ def get_ticker_data(ticker_symbol: str) -> dict:
         day_low = info.get("dayLow")
         day_high = info.get("dayHigh")
 
-        hist = ticker.history(period="1mo")
+        hist = ticker.history(period="1y")
         if hist.empty:
             return {"error": f"Error: [{ticker_symbol}] not found"}
-        rsi = calculate_rsi(hist["Close"])
+        close = hist["Close"]
+        rsi = calculate_rsi(close)
+        ma20 = calculate_ma(close, 20)
+        ma50 = calculate_ma(close, 50)
+        ma200 = calculate_ma(close, 200)
+        macd_val, macd_signal = calculate_macd(close)
 
-        return {
+        data = {
             "Ticker": ticker_symbol,
             "Value": current_price,
             "Previous Close": previous_close,
@@ -29,19 +35,17 @@ def get_ticker_data(ticker_symbol: str) -> dict:
             "Day Low": day_low,
             "Day High": day_high,
             "Volume": volume,
-            "RSI": rsi
+            "RSI": rsi,
+            "MA20": ma20,
+            "MA50": ma50,
+            "MA200": ma200,
+            "MACD": macd_val,
+            "MACD Signal": macd_signal,
         }
+
+        return data
 
     except Exception as e:
         return {"error": f"Failed to fetch data for {ticker_symbol}: {str(e)}"}
 
 
-def calculate_rsi(series, period: int = 14):
-    """Simple RSI calculation from close prices."""
-    delta = series.diff().dropna()
-    gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
-
-    rs = gain / loss
-    rsi = 100 - (100 / (1 + rs))
-    return round(rsi.iloc[-1], 2) if not rsi.empty else None

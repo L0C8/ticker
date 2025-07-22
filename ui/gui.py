@@ -48,7 +48,7 @@ class TickerApp:
     def show_main(self):
         self.clear_container()
         notebook = ttk.Notebook(self.container)
-        main_panel = MainPanel(notebook)
+        main_panel = MainPanel(notebook, self)
         settings_panel = SettingsPanel(notebook, self)
         notebook.add(main_panel, text="Main")
         notebook.add(settings_panel, text="Settings")

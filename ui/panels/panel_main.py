@@ -1,9 +1,11 @@
 import tkinter as tk
+import json
 from core.services import get_ticker_data
 
 class MainPanel(tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, app):
         super().__init__(parent, bg="white")
+        self.app = app
         
         search_frame = tk.Frame(self, bg="white")
         search_frame.pack(fill="x", anchor="nw", padx=10, pady=10)
@@ -34,7 +36,7 @@ class MainPanel(tk.Frame):
                     if "error" in data:
                         self.output_text.insert(tk.END, data["error"])
                     else:
-                        self.output_text.insert(tk.END, str(data))
+                        self.output_text.insert(tk.END, json.dumps(data, indent=4))
                     if idx < len(tickers) - 1:
                         self.output_text.insert(tk.END, "\n")
                 self.save_button.configure(state="normal")

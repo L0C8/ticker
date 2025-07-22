@@ -42,4 +42,4 @@ class AESCipherPass:
 def hash_text(text, method='sha256'):
     h = getattr(hashlib, method)()
     h.update(text.encode('utf-8'))
-    return h.hexdigest()       
+    return h.hexdigest()
