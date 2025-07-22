@@ -1,5 +1,10 @@
 import yfinance as yf
-from core.calc import calculate_rsi, calculate_ma, calculate_macd
+from core.calc import (
+    calculate_rsi,
+    calculate_ma,
+    calculate_macd,
+    summarize_option_chain,
+)
 
 def get_ticker_data(ticker_symbol: str) -> dict:
     ticker_symbol = ticker_symbol.upper()
@@ -27,6 +32,8 @@ def get_ticker_data(ticker_symbol: str) -> dict:
         ma200 = calculate_ma(close, 200)
         macd_val, macd_signal = calculate_macd(close)
 
+        options_summary = summarize_option_chain(ticker_symbol)
+
         data = {
             "Ticker": ticker_symbol,
             "Value": current_price,
@@ -41,6 +48,7 @@ def get_ticker_data(ticker_symbol: str) -> dict:
             "MA200": ma200,
             "MACD": macd_val,
             "MACD Signal": macd_signal,
+            "Options": options_summary,
         }
 
         return data
