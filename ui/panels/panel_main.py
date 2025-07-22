@@ -1,4 +1,5 @@
 import tkinter as tk
+from core.services import get_ticker_data
 
 class MainPanel(tk.Frame):
     def __init__(self, parent):
@@ -26,8 +27,17 @@ class MainPanel(tk.Frame):
         self.output_text.configure(state="normal")
         self.output_text.delete("1.0", tk.END)
         if query:
-            self.output_text.insert(tk.END, "temp")
-            self.save_button.configure(state="normal")
+            tickers = [t.strip() for t in query.replace(",", " ").split() if t.strip()]
+            for idx, ticker in enumerate(tickers):
+                data = get_ticker_data(ticker)
+                if isinstance(data, dict):
+                    if "error" in data:
+                        self.output_text.insert(tk.END, data["error"])
+                    else:
+                        self.output_text.insert(tk.END, str(data))
+                    if idx < len(tickers) - 1:
+                        self.output_text.insert(tk.END, "\n")
+                self.save_button.configure(state="normal")
         else:
             self.save_button.configure(state="disabled")
         self.output_text.configure(state="disabled")
