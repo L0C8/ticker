@@ -36,7 +36,16 @@ class MainPanel(tk.Frame):
                         self.output_text.insert(tk.END, data["error"])
                     else:
                         for key, val in data.items():
-                            self.output_text.insert(tk.END, f"{key}: {val}\n")
+                            if isinstance(val, dict):
+                                self.output_text.insert(tk.END, f"{key}:\n")
+                                for k2, v2 in val.items():
+                                    self.output_text.insert(
+                                        tk.END, f"  {k2}: {v2}\n"
+                                    )
+                            else:
+                                self.output_text.insert(
+                                    tk.END, f"{key}: {val}\n"
+                                )
                     if idx < len(tickers) - 1:
                         self.output_text.insert(tk.END, "-" * 40 + "\n")
                     self.save_button.configure(state="normal")
