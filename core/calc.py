@@ -95,3 +95,59 @@ def summarize_option_chain(
         }
     except Exception as e:
         return {"error": f"Failed to retrieve options for {symbol}: {e}"}
+
+
+def random_forest_prediction(series: pd.Series, n_lags: int = 5) -> float | None:
+    """Return next close price prediction using RandomForestRegressor.
+
+    Returns ``None`` if scikit-learn is not available or insufficient data.
+    """
+    try:
+        from sklearn.ensemble import RandomForestRegressor
+    except Exception:
+        return None
+
+    if len(series) <= n_lags:
+        return None
+
+    df = pd.DataFrame({"Close": series})
+    for i in range(1, n_lags + 1):
+        df[f"lag_{i}"] = df["Close"].shift(i)
+    df.dropna(inplace=True)
+
+    features = [f"lag_{i}" for i in range(1, n_lags + 1)]
+    X = df[features]
+    y = df["Close"]
+
+    model = RandomForestRegressor(n_estimators=100, random_state=42)
+    model.fit(X[:-1], y[:-1])
+    pred = model.predict(X.iloc[[-1]])
+    return round(float(pred[0]), 2)
+
+
+def xgboost_prediction(series: pd.Series, n_lags: int = 5) -> float | None:
+    """Return next close price prediction using XGBoost.
+
+    Returns ``None`` if xgboost is not installed or insufficient data.
+    """
+    try:
+        from xgboost import XGBRegressor
+    except Exception:
+        return None
+
+    if len(series) <= n_lags:
+        return None
+
+    df = pd.DataFrame({"Close": series})
+    for i in range(1, n_lags + 1):
+        df[f"lag_{i}"] = df["Close"].shift(i)
+    df.dropna(inplace=True)
+
+    features = [f"lag_{i}" for i in range(1, n_lags + 1)]
+    X = df[features]
+    y = df["Close"]
+
+    model = XGBRegressor(objective="reg:squarederror", n_estimators=200, random_state=42)
+    model.fit(X[:-1], y[:-1])
+    pred = model.predict(X.iloc[[-1]])
+    return round(float(pred[0]), 2)
