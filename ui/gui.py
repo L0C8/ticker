@@ -8,6 +8,7 @@ from core.utils import bootcheck
 # ui panels 
 from ui.panels.panel_main import MainPanel
 from ui.panels.panel_settings import SettingsPanel
+from ui.panels.panel_help import HelpPanel
 
 class TickerApp:
     def __init__(self, root):
@@ -35,8 +36,10 @@ class TickerApp:
         notebook = ttk.Notebook(self.container)
         main_panel = MainPanel(notebook, self)
         settings_panel = SettingsPanel(notebook, self)
+        help_panel = HelpPanel(notebook, self)
         notebook.add(main_panel, text="Main")
         notebook.add(settings_panel, text="Settings")
+        notebook.add(help_panel, text="Help")
         notebook.pack(fill="both", expand=True)
 
 def launch_gui():
