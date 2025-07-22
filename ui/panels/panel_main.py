@@ -1,9 +1,12 @@
 import tkinter as tk
+import json
 from core.services import get_ticker_data
+from core.cipher import AESCipherPass
 
 class MainPanel(tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, app):
         super().__init__(parent, bg="white")
+        self.app = app
         
         search_frame = tk.Frame(self, bg="white")
         search_frame.pack(fill="x", anchor="nw", padx=10, pady=10)
@@ -28,19 +31,40 @@ class MainPanel(tk.Frame):
         self.output_text.delete("1.0", tk.END)
         if query:
             tickers = [t.strip() for t in query.replace(",", " ").split() if t.strip()]
+            api_key = self._get_api_key()
+            if not api_key:
+                self.output_text.configure(state="disabled")
+                return
             for idx, ticker in enumerate(tickers):
-                data = get_ticker_data(ticker)
+                data = get_ticker_data(ticker, api_key=api_key)
                 if isinstance(data, dict):
                     if "error" in data:
                         self.output_text.insert(tk.END, data["error"])
                     else:
-                        self.output_text.insert(tk.END, str(data))
+                        self.output_text.insert(tk.END, json.dumps(data, indent=4))
                     if idx < len(tickers) - 1:
                         self.output_text.insert(tk.END, "\n")
                 self.save_button.configure(state="normal")
         else:
             self.save_button.configure(state="disabled")
         self.output_text.configure(state="disabled")
+
+    def _get_api_key(self):
+        try:
+            with open(self.app.accounts_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            return None
+
+        users = data.get("users", {})
+        user_data = users.get(self.app.current_user_enc, {})
+        enc_key = user_data.get("finnhub", "")
+        if enc_key and self.app.current_password:
+            try:
+                return AESCipherPass.decrypt(enc_key, self.app.current_password)
+            except Exception:
+                return None
+        return None
 
     def _save_text(self):
         text = self.output_text.get("1.0", tk.END).strip()
