@@ -1,5 +1,4 @@
 import tkinter as tk
-import json
 from core.services import get_ticker_data
 
 class MainPanel(tk.Frame):
@@ -36,10 +35,20 @@ class MainPanel(tk.Frame):
                     if "error" in data:
                         self.output_text.insert(tk.END, data["error"])
                     else:
-                        self.output_text.insert(tk.END, json.dumps(data, indent=4))
+                        for key, val in data.items():
+                            if isinstance(val, dict):
+                                self.output_text.insert(tk.END, f"{key}:\n")
+                                for k2, v2 in val.items():
+                                    self.output_text.insert(
+                                        tk.END, f"  {k2}: {v2}\n"
+                                    )
+                            else:
+                                self.output_text.insert(
+                                    tk.END, f"{key}: {val}\n"
+                                )
                     if idx < len(tickers) - 1:
-                        self.output_text.insert(tk.END, "\n")
-                self.save_button.configure(state="normal")
+                        self.output_text.insert(tk.END, "-" * 40 + "\n")
+                    self.save_button.configure(state="normal")
         else:
             self.save_button.configure(state="disabled")
         self.output_text.configure(state="disabled")
