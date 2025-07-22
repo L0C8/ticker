@@ -17,7 +17,7 @@ def bootcheck():
         ciphered_pw = AESCipherPass.encrypt(default_pass, "default")
         hashed = hash_text(ciphered_pw)
         enc_pass_hash = AESCipherPass.encrypt(hashed, default_pass)
-        data = {"users": {enc_user: {"password": enc_pass_hash, "finnhub": ""}}}
+        data = {"users": {enc_user: {"password": enc_pass_hash}}}
         with accounts_file.open("w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
 
@@ -57,7 +57,7 @@ def create_account(username: str, pw1: str, pw2: str, accounts_file: Path | str)
     ciphered_pw = AESCipherPass.encrypt(pw1, "default")
     hashed_pw = hash_text(ciphered_pw)
     enc_pw = AESCipherPass.encrypt(hashed_pw, pw1)
-    users[enc_user] = {"password": enc_pw, "finnhub": ""}
+    users[enc_user] = {"password": enc_pw}
     _save_users(accounts_file, users)
     return True, "Account created"
 
