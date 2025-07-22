@@ -44,9 +44,18 @@ def get_ticker_data(ticker_symbol: str, api_key: str | None = None) -> dict:
         }
 
         if api_key:
-            fh = fetch_finnhub_quote(ticker_symbol, api_key)
-            if fh:
-                data["Finnhub"] = fh
+            quote = fetch_finnhub_quote(ticker_symbol, api_key)
+            profile = fetch_finnhub_profile(ticker_symbol, api_key)
+            if quote:
+                if "error" in quote:
+                    data["Finnhub"] = quote
+                else:
+                    data["Finnhub Quote"] = quote
+            if profile:
+                if "error" in profile:
+                    data["Finnhub"] = profile
+                else:
+                    data["Finnhub Profile"] = profile
 
         return data
 
@@ -93,6 +102,27 @@ def fetch_finnhub_quote(symbol: str, api_key: str) -> dict | None:
                 "Open": q.get("o"),
                 "Prev Close": q.get("pc"),
             }
+        if resp.status_code in (401, 403):
+            return {"error": "invalid key"}
+    except Exception:
+        pass
+    return None
+
+
+def fetch_finnhub_profile(symbol: str, api_key: str) -> dict | None:
+    url = "https://finnhub.io/api/v1/stock/profile2"
+    try:
+        resp = requests.get(url, params={"symbol": symbol, "token": api_key}, timeout=5)
+        if resp.status_code == 200:
+            p = resp.json()
+            return {
+                "Name": p.get("name"),
+                "Exchange": p.get("exchange"),
+                "Industry": p.get("finnhubIndustry"),
+                "MarketCap": p.get("marketCapitalization"),
+            }
+        if resp.status_code in (401, 403):
+            return {"error": "invalid key"}
     except Exception:
         pass
     return None

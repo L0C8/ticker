@@ -32,6 +32,9 @@ class MainPanel(tk.Frame):
         if query:
             tickers = [t.strip() for t in query.replace(",", " ").split() if t.strip()]
             api_key = self._get_api_key()
+            if not api_key:
+                self.output_text.configure(state="disabled")
+                return
             for idx, ticker in enumerate(tickers):
                 data = get_ticker_data(ticker, api_key=api_key)
                 if isinstance(data, dict):
