@@ -33,15 +33,30 @@ class CreatePanel(tk.Frame):
         if pw1 != pw2:
             messagebox.showerror("Error", "Passwords do not match")
             return
-        config = configparser.ConfigParser()
-        config.read(self.app.accounts_file)
-        if config.has_option("users", username):
-            messagebox.showerror("Error", "Username already exists")
-            return
-        if "users" not in config:
-            config["users"] = {}
-        config["users"][username] = pw1
+        try:
+            with open(self.app.accounts_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            data = {}
+
+        users = data.get("users", {})
+        for enc_user in users.keys():
+            try:
+                dec_user = AESCipherPass.decrypt(enc_user, "default")
+            except Exception:
+                continue
+            if dec_user == username:
+                messagebox.showerror("Error", "Username already exists")
+                return
+
+        enc_user = AESCipherPass.encrypt(username, "default")
+        hashed_pw = hash_text(pw1)
+        enc_pw = AESCipherPass.encrypt(hashed_pw, pw1)
+        users[enc_user] = {"password": enc_pw}
+        data["users"] = users
+
         with open(self.app.accounts_file, "w", encoding="utf-8") as f:
-            config.write(f)
+            json.dump(data, f, indent=4)
+
         messagebox.showinfo("Success", "Account created")
         self.app.show_login()

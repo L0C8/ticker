@@ -21,7 +21,7 @@ class TickerApp:
 
         bootcheck()
         self.base_dir = Path(__file__).resolve().parent.parent
-        self.accounts_file = self.base_dir / "data" / "accounts.ini"
+        self.accounts_file = self.base_dir / "data" / "accounts.json"
 
         self.container = tk.Frame(self.root, bg="white")
         self.container.pack(fill="both", expand=True)
