@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
-import configparser
+import json
 from pathlib import Path
+from core.cipher import AESCipherPass, hash_text
 
 
 class LoginPanel(tk.Frame):
@@ -23,9 +24,37 @@ class LoginPanel(tk.Frame):
     def _login(self):
         username = self.username_var.get().strip()
         password = self.password_var.get().strip()
-        config = configparser.ConfigParser()
-        config.read(self.app.accounts_file)
-        if config.has_option("users", username) and config["users"][username] == password:
-            self.app.show_main()
-        else:
+        if not username or not password:
             messagebox.showerror("Login Failed", "Invalid username or password")
+            return
+
+        try:
+            with open(self.app.accounts_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            data = {}
+
+        users = data.get("users", {})
+        ciphered_input = AESCipherPass.encrypt(password, "default")
+        hashed_input = hash_text(ciphered_input)
+
+        for enc_user, info in users.items():
+            try:
+                dec_user = AESCipherPass.decrypt(enc_user, "default")
+            except Exception:
+                continue
+            if dec_user == username:
+                stored_enc = info.get("password", "")
+                try:
+                    stored_hash = AESCipherPass.decrypt(stored_enc, password)
+                except Exception:
+                    break
+                if stored_hash == hashed_input:
+                    self.app.current_password = password
+                    self.app.current_user_enc = enc_user
+                    self.app.current_username = username
+                    self.app.show_main()
+                    return
+                break
+
+        messagebox.showerror("Login Failed", "Invalid username or password")
