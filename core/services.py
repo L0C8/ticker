@@ -7,6 +7,8 @@ from core.calc import (
     random_forest_prediction,
     xgboost_prediction,
 )
+import ccxt
+import pandas as pd
 
 def get_ticker_data(ticker_symbol: str) -> dict:
     ticker_symbol = ticker_symbol.upper()
@@ -74,4 +76,31 @@ def get_ticker_data(ticker_symbol: str) -> dict:
     except Exception as e:
         return {"error": f"Failed to fetch data for {ticker_symbol}: {str(e)}"}
 
+# --- Crypto Services ------------------------------------------------------
 
+def get_crypto_data(symbol: str) -> dict:
+    """Return crypto price information and RSI using ccxt.
+    
+    todo, move calc functions to calc"""
+    symbol = symbol.upper()
+    try:
+        exchange = ccxt.binance()
+        market_symbol = f"{symbol}/USDT"
+        ticker = exchange.fetch_ticker(market_symbol)
+        ohlcv = exchange.fetch_ohlcv(market_symbol, timeframe="1d", limit=200)
+        closes = [c[4] for c in ohlcv]
+        series = pd.Series(closes)
+        rsi = calculate_rsi(series)
+        data = {
+            "Ticker": symbol,
+            "Value": ticker.get("last"),
+            "Bid": ticker.get("bid"),
+            "Ask": ticker.get("ask"),
+            "Day Low": ticker.get("low"),
+            "Day High": ticker.get("high"),
+            "Volume": ticker.get("baseVolume"),
+            "RSI": rsi,
+        }
+        return data
+    except Exception as e:
+        return {"error": f"Failed to fetch crypto data for {symbol}: {e}"}

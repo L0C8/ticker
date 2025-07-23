@@ -12,9 +12,10 @@ The application relies on the following Python libraries:
 - cryptography
 - scikit-learn
 - xgboost
+- ccxt
 
 You can install them with:
 
 ```bash
-pip install pandas numpy yfinance cryptography scikit-learn xgboost
+pip install pandas numpy yfinance cryptography scikit-learn xgboost ccxt
 ```

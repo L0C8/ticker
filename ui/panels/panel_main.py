@@ -1,6 +1,6 @@
 import tkinter as tk
 import threading
-from core.services import get_ticker_data
+from core.services import get_ticker_data, get_crypto_data
 
 class MainPanel(tk.Frame):
     def __init__(self, parent, app):
@@ -17,6 +17,10 @@ class MainPanel(tk.Frame):
 
         self.search_button = tk.Button(search_frame, text="Search", command=self._on_search)
         self.search_button.pack(side="left", padx=(5, 0))
+
+        self.mode_var = tk.StringVar(value="Stocks")
+        self.mode_button = tk.Button(search_frame, textvariable=self.mode_var, command=self._toggle_mode)
+        self.mode_button.pack(side="left", padx=(5, 0))
 
         self.save_button = tk.Button(search_frame, text="Save", command=self._save_text, state="disabled")
         self.save_button.pack(side="left", padx=(5, 0))
@@ -55,7 +59,10 @@ class MainPanel(tk.Frame):
     def _perform_search(self, tickers: list[str]):
         results = []
         for idx, ticker in enumerate(tickers):
-            data = get_ticker_data(ticker)
+            if self.mode_var.get() == "Crypto":
+                data = get_crypto_data(ticker)
+            else:
+                data = get_ticker_data(ticker)
             lines = []
             if isinstance(data, dict):
                 if "error" in data:
@@ -74,6 +81,12 @@ class MainPanel(tk.Frame):
 
         final_text = "\n".join(results)
         self.after(0, lambda: self._display_result(final_text))
+
+    def _toggle_mode(self):
+        if self.mode_var.get() == "Stocks":
+            self.mode_var.set("Crypto")
+        else:
+            self.mode_var.set("Stocks")
 
     def _display_result(self, text: str):
         self.loading = False
