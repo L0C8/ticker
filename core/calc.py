@@ -11,6 +11,15 @@ def calculate_rsi(series: pd.Series, period: int = 14) -> float | None:
     return round(rsi.iloc[-1], 2) if not rsi.empty else None
 
 
+def rsi_series(series: pd.Series, period: int = 14) -> pd.Series:
+    """Return an RSI series for use in feature engineering."""
+    delta = series.diff()
+    gain = delta.where(delta > 0, 0).rolling(window=period).mean()
+    loss = -delta.where(delta < 0, 0).rolling(window=period).mean()
+    rs = gain / loss
+    return 100 - (100 / (1 + rs))
+
+
 def calculate_ma(series: pd.Series, window: int) -> float | None:
     """Calculate moving average for the given window size."""
     ma = series.rolling(window=window).mean()
@@ -97,7 +106,12 @@ def summarize_option_chain(
         return {"error": f"Failed to retrieve options for {symbol}: {e}"}
 
 
-def random_forest_prediction(series: pd.Series, n_lags: int = 5) -> float | None:
+def random_forest_prediction(
+    series: pd.Series,
+    n_lags: int = 5,
+    spy: pd.Series | None = None,
+    uup: pd.Series | None = None,
+) -> float | None:
     """Return next close price prediction using RandomForestRegressor.
 
     Returns ``None`` if scikit-learn is not available or insufficient data.
@@ -113,9 +127,21 @@ def random_forest_prediction(series: pd.Series, n_lags: int = 5) -> float | None
     df = pd.DataFrame({"Close": series})
     for i in range(1, n_lags + 1):
         df[f"lag_{i}"] = df["Close"].shift(i)
+
+    if spy is not None:
+        df["spy_rsi"] = rsi_series(spy)
+        df["rel_strength"] = series / spy
+
+    if uup is not None:
+        df["uup_rsi"] = rsi_series(uup)
+
     df.dropna(inplace=True)
 
     features = [f"lag_{i}" for i in range(1, n_lags + 1)]
+    if spy is not None:
+        features.extend(["spy_rsi", "rel_strength"])
+    if uup is not None:
+        features.append("uup_rsi")
     X = df[features]
     y = df["Close"]
 
@@ -125,7 +151,12 @@ def random_forest_prediction(series: pd.Series, n_lags: int = 5) -> float | None
     return round(float(pred[0]), 2)
 
 
-def xgboost_prediction(series: pd.Series, n_lags: int = 5) -> float | None:
+def xgboost_prediction(
+    series: pd.Series,
+    n_lags: int = 5,
+    spy: pd.Series | None = None,
+    uup: pd.Series | None = None,
+) -> float | None:
     """Return next close price prediction using XGBoost.
 
     Returns ``None`` if xgboost is not installed or insufficient data.
@@ -141,9 +172,21 @@ def xgboost_prediction(series: pd.Series, n_lags: int = 5) -> float | None:
     df = pd.DataFrame({"Close": series})
     for i in range(1, n_lags + 1):
         df[f"lag_{i}"] = df["Close"].shift(i)
+
+    if spy is not None:
+        df["spy_rsi"] = rsi_series(spy)
+        df["rel_strength"] = series / spy
+
+    if uup is not None:
+        df["uup_rsi"] = rsi_series(uup)
+
     df.dropna(inplace=True)
 
     features = [f"lag_{i}" for i in range(1, n_lags + 1)]
+    if spy is not None:
+        features.extend(["spy_rsi", "rel_strength"])
+    if uup is not None:
+        features.append("uup_rsi")
     X = df[features]
     y = df["Close"]
 
